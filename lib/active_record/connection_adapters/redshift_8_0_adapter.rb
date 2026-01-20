@@ -360,6 +360,16 @@ module ActiveRecord
         end
       end
 
+      # Rails 8.1 deprecated AbstractAdapter#check_if_write_query
+      # Implement it here for compatibility if it doesn't exist in the parent class
+      unless AbstractAdapter.method_defined?(:check_if_write_query)
+        def check_if_write_query(sql)
+          return unless preventing_writes? && write_query?(sql)
+
+          raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+        end
+      end
+
       class << self
         def initialize_type_map(m)
           # :nodoc:
